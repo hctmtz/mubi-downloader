@@ -10,12 +10,21 @@ import shutil
 # Get the desired output filename from the user
 name = input('enter final file name: ')
 
+#CHANGE ANY «EDIT_ME» IN THE VARIABLES BELOW
+
+#Movie ID can be find in Dev tools if you type "viewing".
+movie_id="EDIT_ME"
+#To get the movie ID (in the URL) and the Authorization Bearer (in the headers), filter for the word "viewing" in your network traffic manager.
+authorization_bearer="Bearer EDIT_ME"
+#Search for "cenc" to get the value for the header "dt-custom-data:". Copy this value and paste it into the corresponding one in the script.
+dt_custom_data="dt-custom-data: EDIT_ME" 
+
 # Define headers to be sent with the HTTP request
 headers = {
     'authority': 'api.mubi.com',
     'accept': '*/*',
     'accept-language': 'en',
-    'authorization': 'Bearer ADDHERE', # add the authorization token here
+    'authorization': f'{authorization_bearer}', # add the authorization token here
     'client': 'web',
     'client-accept-audio-codecs': 'aac',
     'client-accept-video-codecs': 'h265,vp9,h264',
@@ -33,7 +42,7 @@ headers = {
 }
 
 # Make a GET request to the specified URL with the given headers, and load the response JSON into a dictionary
-response = requests.get('https://api.mubi.com/v3/films/ADDHERE/viewing/secure_url', headers=headers) # mubi movie ID goes here
+response = requests.get(f'https://api.mubi.com/v3/films/{movie_id}/viewing/secure_url', headers=headers) # mubi movie ID goes here
 mubi = json.loads(response.text)
 
 # Extract the video title and secure URL from the response
@@ -76,7 +85,7 @@ headers = {
 # Set the JSON data for the request
 json_data = {
     'license': 'https://lic.drmtoday.com/license-proxy-widevine/cenc/?specConform=true',
-    'headers': 'dt-custom-data: ADDHERE', # add your encoded headers, starts with "ey"
+    'headers': f'{dt_custom_data}', # add your encoded headers, starts with "ey"
     'pssh': f'{pssh}',                                                
     'buildInfo': '',                                                 
     'proxy': '',                                                      
@@ -100,7 +109,7 @@ folder_path = cwd # Make this a valid path to a folder
 os.system(fr'N_m3u8DL-RE "{mubi}" --auto-select --save-name "{name}" --auto-select --save-dir {folder_path} --tmp-dir {folder_path}/temp')
 # Run shaka-packager to decrypt the video file
 dest_dir = f"{folder_path}/{name}"
-os.system(fr'shaka-packager in="{folder_path}/{name}.mp4",stream=video,output="{dest_dir}/decrypted-video.mp4" --enable_raw_key_decryption --keys {decryption_key}')  # The decrypted video file will be saved in E:\uncomplete\{name}\decrypted-video.mp4
+os.system(fr'shaka-packager in="{folder_path}/{name}.mp4",stream=video,output="{dest_dir}/{name}.mp4" --enable_raw_key_decryption --keys {decryption_key}')  # The decrypted video file will be saved in E:\uncomplete\{name}\decrypted-video.mp4
 
 # Define a regex pattern to match the audio file names
 regex_pattern = re.escape(name) + r"\.[a-z]{2}\.m4a"
@@ -115,6 +124,6 @@ for filename in os.listdir(folder_path):
         # Extract the language code from the file name
         letters = re.search(re.escape(name) + r"\.([a-zA-Z]{2,})\.m4a", filename).group(1)
         # Run shaka-packager to decrypt the audio file
-        os.system(fr'shaka-packager in="{folder_path}/{name}.{letters}.m4a",stream=audio,output="{dest_dir}/decrypted-audio.{letters}.m4a" --enable_raw_key_decryption --keys {decryption_key}')
+        os.system(fr'shaka-packager in="{folder_path}/{name}.{letters}.m4a",stream=audio,output="{dest_dir}/{name}.{letters}.m4a" --enable_raw_key_decryption --keys {decryption_key}')
         os.remove(f"{folder_path}/{name}.{letters}.m4a")
         os.remove(f"{folder_path}/{name}.mp4")
