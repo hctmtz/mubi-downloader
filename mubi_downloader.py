@@ -124,8 +124,13 @@ for filename in os.listdir(folder_path):
     # If the file name matches the regex pattern
     if re.match(regex_pattern, filename):
         # Extract the language code from the file name
-        letters = re.search(re.escape(name) + r"\.([a-zA-Z]{2,})\.m4a", filename).group(1)
+        token1="."
+        token2=".m4a"
+        lang_code=filename[filename.find(token1)+1 : filename.find(token2)]
         # Run shaka-packager to decrypt the audio file
-        os.system(fr'shaka-packager in="{folder_path}/{name}.{letters}.m4a",stream=audio,output="{dest_dir}/{name}.{letters}.m4a" --enable_raw_key_decryption --keys {decryption_key}')
-        os.remove(f"{folder_path}/{name}.{letters}.m4a")
+        os.system(fr'shaka-packager in="{folder_path}/{name}.{lang_code}.m4a",stream=audio,output="{dest_dir}/{name}.{lang_code}.m4a" --enable_raw_key_decryption --keys {decryption_key}')
+        os.remove(f"{folder_path}/{name}.{lang_code}.m4a")
         os.remove(f"{folder_path}/{name}.mp4")
+        
+#Merge Audio & Video files
+os.system(fr'ffmpeg -i "{dest_dir}/{name}.mp4" -i "{dest_dir}/{name}.{lang_code}.m4a" -acodec copy -vcodec copy "{dest_dir}/{name}_final.mp4"')
