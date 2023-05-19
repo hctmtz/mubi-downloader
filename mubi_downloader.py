@@ -124,6 +124,7 @@ for filename in os.listdir(folder_path):
     # If the file name matches the regex pattern
     if re.match(regex_pattern, filename):
         # Extract the language code from the file name
+        # Previous approach fails if lang code was over 2 characters, for example yue or nan and audio ends up encrypted and silent
         token1="."
         token2=".m4a"
         lang_code=filename[filename.find(token1)+1 : filename.find(token2)]
